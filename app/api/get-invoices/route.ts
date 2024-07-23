@@ -41,9 +41,10 @@ export async function GET(req: NextRequest) {
       throw new Error('Invalid data format received from Tyms API');
     }
 
-    const invoices = responseData.data.data;
-    console.log('Successfully fetched invoices. Count:', invoices.length);
-    return NextResponse.json(invoices);
+    console.log('Successfully fetched invoices. Count:', responseData.data.data.length);
+    
+    // Return the data in the structure expected by the frontend
+    return NextResponse.json({ data: responseData.data });
   } catch (error: any) {
     console.error('Error fetching invoices:', error);
     return NextResponse.json({ 

@@ -22,26 +22,26 @@ export const Main = () => {
   const [error, setError] = useState<string | null>(null);
 
   const fetchInvoices = useCallback(async () => {
-    try {
-      const response = await fetch('/api/get-invoices');
-      if (!response.ok) {
-        throw new Error('Failed to fetch invoices');
-      }
-      const data = await response.json();
-      if (Array.isArray(data.data?.data)) {
-        setInvoices(data.data.data);
-      } else if (data.error) {
-        throw new Error(data.error);
-      } else {
-        throw new Error('Invalid data format');
-      }
-    } catch (err: any) {
-      setError(err.message || 'Error fetching invoices. Please try again later.');
-      console.error(err);
-    } finally {
-      setIsLoading(false);
+  try {
+    const response = await fetch('/api/get-invoices');
+    if (!response.ok) {
+      throw new Error('Failed to fetch invoices');
     }
-  }, []);
+    const data = await response.json();
+    if (Array.isArray(data.data?.data)) {
+      setInvoices(data.data.data);
+    } else if (data.error) {
+      throw new Error(data.error);
+    } else {
+      throw new Error('Invalid data format');
+    }
+  } catch (err: any) {
+    setError(err.message || 'Error fetching invoices. Please try again later.');
+    console.error(err);
+  } finally {
+    setIsLoading(false);
+  }
+}, []);
 
   useEffect(() => {
     let isMounted = true;
