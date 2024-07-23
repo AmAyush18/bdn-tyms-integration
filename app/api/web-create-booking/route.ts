@@ -19,6 +19,16 @@ const BookingSchema = z.object({
   total_cost: z.number().positive().multipleOf(0.01),
 });
 
+export async function OPTIONS(request: NextRequest) {
+  return new NextResponse(null, {
+    status: 204,
+    headers: {
+      'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    },
+  });
+}
+
 export async function POST(request: NextRequest) {
   console.log('Received POST request to /api/bookings');
 
