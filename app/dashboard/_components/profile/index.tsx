@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis } from "recharts";
+import { Button } from "@/components/ui/button"; // Make sure you have this component
 
 interface Invoice {
   uuid: string;
@@ -12,6 +13,7 @@ interface Invoice {
   transaction_amount: number;
   currency: string;
   balance: number;
+  invoice_url: string; // Add this field
 }
 
 export const Main = () => {
@@ -26,8 +28,8 @@ export const Main = () => {
         throw new Error('Failed to fetch invoices');
       }
       const data = await response.json();
-      if (Array.isArray(data)) {
-        setInvoices(data);
+      if (Array.isArray(data.data?.data)) {
+        setInvoices(data.data.data);
       } else if (data.error) {
         throw new Error(data.error);
       } else {
@@ -92,6 +94,7 @@ export const Main = () => {
             <TableHead>Amount</TableHead>
             <TableHead>Currency</TableHead>
             <TableHead>Balance</TableHead>
+            <TableHead>Action</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -102,6 +105,13 @@ export const Main = () => {
               <TableCell>{invoice.transaction_amount.toFixed(2)}</TableCell>
               <TableCell>{invoice.currency}</TableCell>
               <TableCell>{invoice.balance.toFixed(2)}</TableCell>
+              <TableCell>
+                <Button
+                  onClick={() => window.open(invoice.invoice_url, '_blank')}
+                >
+                  Download PDF
+                </Button>
+              </TableCell>
             </TableRow>
           ))}
         </TableBody>
