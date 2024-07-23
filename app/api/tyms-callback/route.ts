@@ -40,6 +40,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Create a response and set the cookies
+    console.log('About to redirect to:', new URL('/dashboard', request.url).toString());
     const res = NextResponse.redirect(new URL('/dashboard', request.url));
     res.cookies.set('tyms_access_token', access_token, { 
       httpOnly: true, 
@@ -54,7 +55,7 @@ export async function GET(request: NextRequest) {
       path: '/'
     });
 
-    console.log('Redirecting to dashboard');
+    console.log('Final redirect URL:', res.headers.get('Location'));
     return res;
   } catch (error: any) {
     console.error('Error exchanging token:', error.response?.data || error.message);

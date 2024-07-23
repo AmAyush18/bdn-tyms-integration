@@ -14,7 +14,7 @@ export async function GET(req: NextRequest) {
     const tymsResponse = await fetch('https://api.tyms.io/api/v1/sales', {
       headers: {
         'Authorization': `Bearer ${accessToken}`,
-        'secret-key': process.env.NEXT_PUBLIC_TYMS_SECRET_KEY!, // Add this line
+        'secret-key': process.env.NEXT_PUBLIC_TYMS_SECRET_KEY!,
       },
     });
 
@@ -22,10 +22,16 @@ export async function GET(req: NextRequest) {
       throw new Error('Failed to fetch sales data from Tyms');
     }
 
-    const salesData = await tymsResponse.json();
+    const responseData = await tymsResponse.json();
+
+    // Check if the response contains the expected structure
+    if (responseData.status !== 'success' || !responseData.data || !Array.isArray(responseData.data.data)) {
+      console.error('Unexpected response structure:', responseData);
+      throw new Error('Unexpected response structure from Tyms API');
+    }
 
     // Calculate total turnover
-    const turnover = salesData.reduce((total: number, sale: any) => total + sale.amount, 0);
+    const turnover = responseData.data.data.reduce((total: number, sale: any) => total + (sale.amount || 0), 0);
 
     return NextResponse.json({ turnover });
   } catch (error: any) {
