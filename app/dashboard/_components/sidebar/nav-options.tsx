@@ -23,7 +23,7 @@ const NavOptions = () => {
         <div className="">
           <IoGrid className="w-[22px] h-[22px]" />
         </div>
-        <p className="text-[16px] font-[500]">Profile</p>
+        <p className="text-[16px] font-[500]">Dashboard</p>
       </Link>
       <Link
         href={{
@@ -40,7 +40,7 @@ const NavOptions = () => {
         </div>
         <p className="text-[16px] font-[500]">Invoices</p>
       </Link>
-      <Link
+      {/* <Link
         href={{
           pathname: "/dashboard",
           query: { tab: `bookings` },
@@ -69,7 +69,7 @@ const NavOptions = () => {
           <BiBarChartAlt2 className="w-[19px] h-[17px]" />
         </div>
         <p className="text-[16px] font-[500]">Turnover</p>
-      </Link>
+      </Link> */}
     </div>
   );
 };

@@ -116,7 +116,7 @@ export const Invoices = () => {
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0">
-                  <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus />
+                  <Calendar mode="single" selected={field.value} onSelect={field.onChange} />
                 </PopoverContent>
               </Popover>
             )}
@@ -177,7 +177,7 @@ export const Invoices = () => {
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0">
-                  <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus />
+                  <Calendar mode="single" selected={field.value} onSelect={field.onChange} />
                 </PopoverContent>
               </Popover>
             )}
@@ -228,7 +228,7 @@ export const Invoices = () => {
               name="invoiceable"
               control={control}
               render={({ field }) => (
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select onValueChange={field.onChange} defaultValue={''}>
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Select invoiceable" />
                   </SelectTrigger>
