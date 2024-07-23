@@ -2,7 +2,7 @@
 import { IoLogOutSharp } from "react-icons/io5";
 import Image from "next/image";
 import NavOptions from "./nav-options";
-import { Suspense } from "react"; // Import Suspense
+import { Suspense } from "react";
 import { useRouter } from "next/navigation";
 
 export const Sidebar = () => {
