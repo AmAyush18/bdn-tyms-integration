@@ -2,7 +2,7 @@
 
 import { useSearchParams } from "next/navigation";
 import { Invoices } from "./invoices";
-import { Profile } from "./profile";
+import { Main } from "./profile";
 import { Turnover } from "./turnover";
 import { Bookings } from "./bookings";
 
@@ -12,7 +12,7 @@ export const DashboardPage = () => {
 
     return (
         <div className="h-full px-3 pt-3">
-            {!tab && <Profile />}
+            {!tab && <Main />}
             {tab === `invoice` && <Invoices />}
             {tab === `turnover` && <Turnover />}
             {tab === `bookings` && <Bookings />}
