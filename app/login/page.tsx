@@ -1,26 +1,14 @@
-'use client';
-
-import { useState, useEffect } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { Suspense } from 'react';
 import Login from '../_components/Login';
+import LoginErrorHandler from './login-error-handler';
 
 export default function LoginPage() {
-  const [error, setError] = useState('');
-  const searchParams = useSearchParams();
-
-  useEffect(() => {
-    const errorParam = searchParams.get('error');
-    if (errorParam) {
-      setError(errorParam === 'token_exchange_failed' 
-        ? 'Failed to authenticate. Please try again.' 
-        : 'An error occurred during login.');
-    }
-  }, [searchParams]);
-
   return (
     <div>
       <Login />
-      {error && <p style={{color: 'red'}}>{error}</p>}
+      <Suspense fallback={<div>Loading...</div>}>
+        <LoginErrorHandler />
+      </Suspense>
     </div>
   );
 }
