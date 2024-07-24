@@ -159,31 +159,28 @@ export async function POST(request: NextRequest) {
         body: JSON.stringify(createInvoiceData),
       });
     
-        let responseData;
-        try {
-        responseData = await invoiceResponse.text();
-        console.log('Raw response from create-invoice:', responseData);
+      console.log('Invoice API response status:', invoiceResponse.status);
 
-        // Try to parse the response as JSON
-        try {
-            responseData = JSON.parse(responseData);
-        } catch (jsonError) {
-            console.error('Failed to parse response as JSON:', jsonError);
-        }
-        } catch (error) {
-        console.error('Error reading response:', error);
-        responseData = null;
-        }
-
-        if (!invoiceResponse.ok) {
+      const responseText = await invoiceResponse.text();
+      console.log('Raw response from create-invoice:', responseText);
+  
+      let responseData;
+      try {
+        responseData = JSON.parse(responseText);
+      } catch (jsonError) {
+        console.error('Failed to parse response as JSON:', jsonError);
+        responseData = { error: 'Invalid JSON response', rawResponse: responseText };
+      }
+  
+      if (!invoiceResponse.ok) {
         console.error('Failed to create invoice:', responseData);
         return NextResponse.json({ 
-            error: 'Failed to create invoice', 
-            details: responseData 
+          error: 'Failed to create invoice', 
+          details: responseData 
         }, { status: invoiceResponse.status });
-        }
+      }
   
-      const invoice = await invoiceResponse.json();
+      console.log('Created invoice:', responseData);
   
       // Send email with invoice
       const transporter = nodemailer.createTransport({
@@ -204,7 +201,7 @@ export async function POST(request: NextRequest) {
         attachments: [
           {
             filename: 'invoice.pdf',
-            content: invoice.pdf, // Assuming the /create-invoice API returns the PDF content
+            // content: invoice.pdf, // Assuming the /create-invoice API returns the PDF content
           },
         ],
       });
