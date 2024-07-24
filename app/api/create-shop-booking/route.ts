@@ -186,7 +186,6 @@ export async function POST(request: NextRequest) {
       const transporter = nodemailer.createTransport({
         host: process.env.SMTP_HOST,
         port: parseInt(process.env.SMTP_PORT || '587'),
-        secure: process.env.SMTP_SECURE === 'true',
         auth: {
           user: process.env.SMTP_USER,
           pass: process.env.SMTP_PASS,
@@ -197,13 +196,23 @@ export async function POST(request: NextRequest) {
         from: process.env.EMAIL_FROM,
         to: invoiceData.customer.email,
         subject: `Your Invoice for ${invoiceData.title}`,
-        text: `Dear ${invoiceData.customer.name},\n\nPlease find attached your invoice for ${invoiceData.title}.\n\nThank you for your business!`,
-        attachments: [
-          {
-            filename: 'invoice.pdf',
-            // content: invoice.pdf, // Assuming the /create-invoice API returns the PDF content
-          },
-        ],
+        html: `
+          <p>Dear ${invoiceData.customer.name},</p>
+          <p>Your invoice for ${invoiceData.title} is ready. You can view and download it using the link below:</p>
+          <p><a href="${responseData.invoice_url}">View Invoice</a></p>
+          <p>If the link doesn't work, you can copy and paste the following URL into your browser:</p>
+          <p>${responseData.invoice_url}</p>
+          <p>Thank you for your business!</p>
+        `,
+        text: `
+      Dear ${invoiceData.customer.name},
+      
+      Your invoice for ${invoiceData.title} is ready. You can view and download it using the following URL:
+      
+      ${responseData.invoice_url}
+      
+      Thank you for your business!
+        `,
       });
   
       return NextResponse.json({ message: 'Booking created and invoice sent' }, { status: 201 });
