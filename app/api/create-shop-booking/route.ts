@@ -117,12 +117,15 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'Database error', details: dbError.message }, { status: 500 });
       }
   
+      const totalAmount = invoiceData.items.reduce((sum, item) => sum + (item.quantity * item.selling_price), 0);
+
+
       // Prepare data for create-invoice API
     const createInvoiceData = {
         date: invoiceData.date,
         due_date: invoiceData.due_date,
         title: invoiceData.title,
-        amount: invoiceData.amount,
+        amount: totalAmount,
         currency: invoiceData.currency,
         category: invoiceData.category,
         payment_type: invoiceData.payment_type,
@@ -153,16 +156,32 @@ export async function POST(request: NextRequest) {
             headers: {
               'Content-Type': 'application/json',
             },
-        body: JSON.stringify({createInvoiceData}),
+        body: JSON.stringify(createInvoiceData),
       });
     
-      const resultInvoice = await invoiceResponse.json()
+        let responseData;
+        try {
+        responseData = await invoiceResponse.text();
+        console.log('Raw response from create-invoice:', responseData);
 
-      if (!invoiceResponse.ok) {
-          console.log(resultInvoice.error)
-        // console.log({invoiceResponse})
-        throw new Error('Failed to create invoice');
-      }
+        // Try to parse the response as JSON
+        try {
+            responseData = JSON.parse(responseData);
+        } catch (jsonError) {
+            console.error('Failed to parse response as JSON:', jsonError);
+        }
+        } catch (error) {
+        console.error('Error reading response:', error);
+        responseData = null;
+        }
+
+        if (!invoiceResponse.ok) {
+        console.error('Failed to create invoice:', responseData);
+        return NextResponse.json({ 
+            error: 'Failed to create invoice', 
+            details: responseData 
+        }, { status: invoiceResponse.status });
+        }
   
       const invoice = await invoiceResponse.json();
   
