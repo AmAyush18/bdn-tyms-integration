@@ -3,6 +3,7 @@ import { cookies } from 'next/headers';
 import db from '@/lib/db';  // Adjust this import path as necessary
 import { z } from 'zod';  // For input validation
 import nodemailer from 'nodemailer';
+import { addDays, format } from 'date-fns';
 
 // Define the schema for input validation
 const InvoiceSchema = z.object({
@@ -51,18 +52,6 @@ export async function OPTIONS(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
     console.log('Received POST request to /api/create-shop-booking');
-
-    // Debug: Log all cookies
-    const cookieStore = cookies();
-    console.log('All cookies:', cookieStore.getAll());
-
-    const accessToken = cookieStore.get('tyms_access_token')?.value;
-    console.log('Access token from cookie:', accessToken);
-
-    if (!accessToken) {
-    console.error('Access token not found in cookies');
-    return NextResponse.json({ error: 'Unauthorized: No access token found' }, { status: 401 });
-    }
   
     try {
       const json = await request.json();
@@ -76,12 +65,21 @@ export async function POST(request: NextRequest) {
       }
   
       const invoiceData = result.data;
+
+      // Set date to today and due_date to 7 days later
+        const today = new Date();
+        const dueDate = addDays(today, 7);
+
+        // Add date and due_date to invoiceData
+        invoiceData.date = format(today, 'yyyy-MM-dd');
+        invoiceData.due_date = format(dueDate, 'yyyy-MM-dd');
   
       // Convert number uuid to string if necessary
       invoiceData.items = invoiceData.items.map(item => ({
         ...item,
         uuid: item.uuid.toString(), // Convert to string
       }));
+      
   
       // Save invoice data to database
       const query = `
@@ -119,14 +117,43 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'Database error', details: dbError.message }, { status: 500 });
       }
   
+      // Prepare data for create-invoice API
+    const createInvoiceData = {
+        date: invoiceData.date,
+        due_date: invoiceData.due_date,
+        title: invoiceData.title,
+        amount: invoiceData.amount,
+        currency: invoiceData.currency,
+        category: invoiceData.category,
+        payment_type: invoiceData.payment_type,
+        invoiceable: invoiceData.invoiceable,
+        customer: {
+          uuid: invoiceData.customer.uuid,
+          name: invoiceData.customer.name,
+          email: invoiceData.customer.email,
+          phone: invoiceData.customer.phone,
+          type: invoiceData.customer.type,
+        },
+        items: invoiceData.items.map(item => ({
+          uuid: item.uuid,
+          quantity: item.quantity,
+          selling_price: item.selling_price,
+          tax: item.tax,
+        })),
+        shipping_fee: invoiceData.shipping_fee,
+        invoice_note: invoiceData.invoice_note,
+      };
+  
+      console.log('Prepared data for create-invoice:', createInvoiceData);
+  
+
       // Call /create-invoice API
       const invoiceResponse = await fetch('http://localhost:3000/api/create-invoice', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              'Cookie': `tyms_access_token=${accessToken}`,  
             },
-        body: JSON.stringify({invoiceData}),
+        body: JSON.stringify({createInvoiceData}),
       });
     
       const resultInvoice = await invoiceResponse.json()

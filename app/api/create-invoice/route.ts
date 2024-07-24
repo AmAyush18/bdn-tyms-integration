@@ -3,12 +3,12 @@ import { cookies } from 'next/headers';
 
 export async function POST(req: NextRequest) {
   const cookieStore = cookies();
-  const accessToken = cookieStore.get('tyms_access_token')?.value;
+  // const accessToken = cookieStore.get('tyms_access_token')?.value;
 
-  if (!accessToken) {
-    console.error('Access token not found');
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  // if (!accessToken) {
+  //   console.error('Access token not found');
+  //   return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  // }
 
   try {
     let requestBody;
@@ -38,7 +38,10 @@ export async function POST(req: NextRequest) {
     console.log('Sending request to Tyms API:', {
         url: apiUrl,
         method: 'POST',
-        headers: { ...headers, 'Authorization': `Bearer ${accessToken}`, 'secret-key': process.env.NEXT_PUBLIC_TYMS_SECRET_KEY },
+        headers: { ...headers, 
+          // 'Authorization': `Bearer ${accessToken}`, 
+          'secret-key': process.env.NEXT_PUBLIC_TYMS_SECRET_KEY 
+        },
         body: JSON.stringify(requestBody),
     });
 
