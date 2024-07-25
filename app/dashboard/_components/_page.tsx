@@ -5,6 +5,7 @@ import { Invoices } from "./invoices";
 import { Main } from "./profile";
 import { Turnover } from "./turnover";
 import { Bookings } from "./bookings";
+import HistoryPage from "./history-page";
 
 export const DashboardPage = () => {
     const searchParams = useSearchParams();
@@ -16,6 +17,7 @@ export const DashboardPage = () => {
             {tab === `invoice` && <Invoices />}
             {tab === `turnover` && <Turnover />}
             {tab === `bookings` && <Bookings />}
+            {tab === `history` && <HistoryPage />}
         </div>
     )
 }
