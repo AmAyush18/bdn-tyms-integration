@@ -3,7 +3,7 @@ import Link from "next/link";
 import { IoGrid } from "react-icons/io5";
 import { ImList } from "react-icons/im";
 import { BiBarChartAlt2 } from "react-icons/bi";
-import { MdOutlineAutoGraph } from "react-icons/md";
+import { MdOutlineAutoGraph, MdOutlineHistoryEdu } from "react-icons/md";
 import { useSearchParams } from "next/navigation";
 import { cn } from "@/lib/utils";
 
@@ -40,36 +40,22 @@ const NavOptions = () => {
         </div>
         <p className="text-[16px] font-[500]">Invoices</p>
       </Link>
-      {/* <Link
-        href={{
-          pathname: "/dashboard",
-          query: { tab: `bookings` },
-        }}
-        className={cn(
-          `w-full px-4 flex py-2 justify-start items-center hover:text-blue-500 gap-x-2`,
-          tab === `bookings` ? "text-blue-500" : "text-muted-foreground"
-        )}
-      >
-        <div className="">
-          <MdOutlineAutoGraph className="w-[19px] h-[17px]" />
-        </div>
-        <p className="text-[16px] font-[500]">Bookings</p>
-      </Link>
       <Link
         href={{
           pathname: "/dashboard",
-          query: { tab: `turnover` },
+          query: { tab: `history` },
         }}
         className={cn(
           `w-full px-4 flex py-2 justify-start items-center hover:text-blue-500 gap-x-2`,
-          tab === `turnover` ? "text-blue-500" : "text-muted-foreground"
+          tab === `history` ? "text-blue-500" : "text-muted-foreground"
         )}
       >
         <div className="">
-          <BiBarChartAlt2 className="w-[19px] h-[17px]" />
+          <MdOutlineHistoryEdu className="w-[19px] h-[17px]" />
         </div>
-        <p className="text-[16px] font-[500]">Turnover</p>
-      </Link> */}
+        <p className="text-[16px] font-[500]">History</p>
+      </Link>
+      
     </div>
   );
 };
