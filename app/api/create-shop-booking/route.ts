@@ -208,7 +208,7 @@ export async function POST(request: NextRequest) {
         });
   
         try {
-            await transporter.sendMail({
+            transporter.sendMail({
                 from: process.env.EMAIL_FROM,
                 to: invoiceData.customer.email,
                 subject: `Your Invoice for ${invoiceData.title}`,
