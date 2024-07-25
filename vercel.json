@@ -1,7 +1,0 @@
-{
-    "functions": {
-      "api/create-shop-booking": {
-        "maxDuration": 60
-      }
-    }
-}
