@@ -1,6 +1,6 @@
 {
     "functions": {
-      "api/create-shop-booking.js": {
+      "api/create-shop-booking": {
         "maxDuration": 60
       }
     }
