@@ -4,6 +4,7 @@ import db from '@/lib/db';  // Adjust this import path as necessary
 import { z } from 'zod';  // For input validation
 import nodemailer from 'nodemailer';
 import { addDays, format } from 'date-fns';
+import fetch from 'node-fetch'; 
 
 // Define the schema for input validation
 const InvoiceSchema = z.object({
@@ -50,23 +51,24 @@ export async function OPTIONS(request: NextRequest) {
   });
 }
 
+
 export async function POST(request: NextRequest) {
     console.log('Received POST request to /api/create-shop-booking');
   
     try {
-      const json = await request.json();
-      console.log('Received data:', json);
+        const json = await request.json();
+        console.log('Received data:', json);
   
-      // Validate input
-      const result = InvoiceSchema.safeParse(json);
-      if (!result.success) {
-        console.error('Validation error:', result.error);
-        return NextResponse.json({ error: 'Invalid input', details: result.error.errors }, { status: 400 });
-      }
+        // Validate input
+        const result = InvoiceSchema.safeParse(json);
+        if (!result.success) {
+            console.error('Validation error:', result.error);
+            return NextResponse.json({ error: 'Invalid input', details: result.error.errors }, { status: 400 });
+        }
   
-      const invoiceData = result.data;
+        const invoiceData = result.data;
 
-      // Set date to today and due_date to 7 days later
+        // Set date to today and due_date to 7 days later
         const today = new Date();
         const dueDate = addDays(today, 7);
 
@@ -74,150 +76,163 @@ export async function POST(request: NextRequest) {
         invoiceData.date = format(today, 'yyyy-MM-dd');
         invoiceData.due_date = format(dueDate, 'yyyy-MM-dd');
   
-      // Convert number uuid to string if necessary
-      invoiceData.items = invoiceData.items.map(item => ({
-        ...item,
-        uuid: item.uuid.toString(), // Convert to string
-      }));
+        // Convert number uuid to string if necessary
+        invoiceData.items = invoiceData.items.map(item => ({
+            ...item,
+            uuid: item.uuid.toString(),
+        }));
       
-  
-      // Save invoice data to database
-      const query = `
-        INSERT INTO "invoices" (
-          date, due_date, title, items, customer, invoice_note,
-          amount, shipping_fee, category, payment_type, invoiceable, currency
-        ) VALUES (
-          $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12
-        ) RETURNING *;
-      `;
-  
-      const values = [
-        invoiceData.date,
-        invoiceData.due_date,
-        invoiceData.title,
-        JSON.stringify(invoiceData.items),
-        JSON.stringify(invoiceData.customer),
-        invoiceData.invoice_note,
-        invoiceData.amount,
-        invoiceData.shipping_fee,
-        invoiceData.category,
-        invoiceData.payment_type,
-        invoiceData.invoiceable,
-        invoiceData.currency,
-      ];
-  
-      console.log('Executing query:', query);
-      console.log('Query values:', values);
-  
-      try {
-        const { rows } = await db.query(query, values);
-        console.log('Inserted invoice:', rows[0]);
-      } catch (dbError: any) {
-        console.error('Database error:', dbError);
-        return NextResponse.json({ error: 'Database error', details: dbError.message }, { status: 500 });
-      }
-  
-      const totalAmount = invoiceData.items.reduce((sum, item) => sum + (item.quantity * item.selling_price), 0);
+        const totalAmount = invoiceData.items.reduce((sum, item) => sum + (item.quantity * item.selling_price), 0);
 
-
-      // Prepare data for create-invoice API
-    const createInvoiceData = {
-        date: invoiceData.date,
-        due_date: invoiceData.due_date,
-        title: invoiceData.title,
-        amount: totalAmount,
-        currency: invoiceData.currency,
-        category: invoiceData.category,
-        payment_type: invoiceData.payment_type,
-        invoiceable: invoiceData.invoiceable,
-        customer: {
-          uuid: invoiceData.customer.uuid,
-          name: invoiceData.customer.name,
-          email: invoiceData.customer.email,
-          phone: invoiceData.customer.phone,
-          type: invoiceData.customer.type,
-        },
-        items: invoiceData.items.map(item => ({
-          uuid: item.uuid,
-          quantity: item.quantity,
-          selling_price: item.selling_price,
-          tax: item.tax,
-        })),
-        shipping_fee: invoiceData.shipping_fee,
-        invoice_note: invoiceData.invoice_note,
-      };
+        // Prepare data for create-invoice API
+        const createInvoiceData = {
+            date: invoiceData.date,
+            due_date: invoiceData.due_date,
+            title: invoiceData.title,
+            amount: totalAmount,
+            currency: invoiceData.currency,
+            category: invoiceData.category,
+            payment_type: invoiceData.payment_type,
+            invoiceable: invoiceData.invoiceable,
+            customer: {
+                uuid: invoiceData.customer.uuid,
+                name: invoiceData.customer.name,
+                email: invoiceData.customer.email,
+                phone: invoiceData.customer.phone,
+                type: invoiceData.customer.type,
+            },
+            items: invoiceData.items.map(item => ({
+                uuid: item.uuid,
+                quantity: item.quantity,
+                selling_price: item.selling_price,
+                tax: item.tax,
+            })),
+            shipping_fee: invoiceData.shipping_fee,
+            invoice_note: invoiceData.invoice_note,
+        };
   
-      console.log('Prepared data for create-invoice:', createInvoiceData);
+        console.log('Prepared data for create-invoice:', createInvoiceData);
   
-
-      // Call /create-invoice API
-      const invoiceResponse = await fetch('http://localhost:3000/api/create-invoice', {
+        // Call /create-invoice API
+        const invoiceResponse = await fetch('http://localhost:3000/api/create-invoice', {
             method: 'POST',
             headers: {
-              'Content-Type': 'application/json',
+                'Content-Type': 'application/json',
             },
-        body: JSON.stringify(createInvoiceData),
-      });
+            body: JSON.stringify(createInvoiceData),
+        });
     
-      console.log('Invoice API response status:', invoiceResponse.status);
+        console.log('Invoice API response status:', invoiceResponse.status);
 
-      const responseText = await invoiceResponse.text();
-      console.log('Raw response from create-invoice:', responseText);
+        const responseText = await invoiceResponse.text();
+        console.log('Raw response from create-invoice:', responseText);
   
-      let responseData;
-      try {
-        responseData = JSON.parse(responseText);
-      } catch (jsonError) {
-        console.error('Failed to parse response as JSON:', jsonError);
-        responseData = { error: 'Invalid JSON response', rawResponse: responseText };
-      }
+        let responseData;
+        try {
+            responseData = JSON.parse(responseText);
+        } catch (jsonError) {
+            console.error('Failed to parse response as JSON:', jsonError);
+            return NextResponse.json({ 
+                error: 'Invalid JSON response from invoice creation', 
+                details: responseText 
+            }, { status: 500 });
+        }
   
-      if (!invoiceResponse.ok) {
-        console.error('Failed to create invoice:', responseData);
+        if (!invoiceResponse.ok) {
+            console.error('Failed to create invoice:', responseData);
+            return NextResponse.json({ 
+                error: 'Failed to create invoice', 
+                details: responseData 
+            }, { status: invoiceResponse.status });
+        }
+  
+        console.log('Created invoice:', responseData);
+
+        // Save invoice data to database
+        const query = `
+            INSERT INTO "invoices" (
+                date, due_date, title, items, customer, invoice_note,
+                amount, shipping_fee, category, payment_type, invoiceable, currency, invoice_url
+            ) VALUES (
+                $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13
+            ) RETURNING *;
+        `;
+  
+        const values = [
+            invoiceData.date,
+            invoiceData.due_date,
+            invoiceData.title,
+            JSON.stringify(invoiceData.items),
+            JSON.stringify(invoiceData.customer),
+            invoiceData.invoice_note,
+            totalAmount,
+            invoiceData.shipping_fee,
+            invoiceData.category,
+            invoiceData.payment_type,
+            invoiceData.invoiceable,
+            invoiceData.currency,
+            responseData.data.invoice_url,
+        ];
+  
+        console.log('Executing query:', query);
+        console.log('Query values:', values);
+  
+        try {
+            const { rows } = await db.query(query, values);
+            console.log('Inserted invoice:', rows[0]);
+        } catch (dbError: any) {
+            console.error('Database error:', dbError);
+            return NextResponse.json({ error: 'Database error', details: dbError.message }, { status: 500 });
+        }
+
+        // Fetch PDF content
+        let pdfContent;
+        try {
+            const pdfResponse = await fetch(responseData.data.invoice_url);
+            if (!pdfResponse.ok) {
+                throw new Error(`Failed to fetch PDF: ${pdfResponse.statusText}`);
+            }
+            pdfContent = await pdfResponse.buffer();
+        } catch (fetchError) {
+            console.error('Error fetching PDF:', fetchError);
+        }
+  
+        // Send email with invoice
+        const transporter = nodemailer.createTransport({
+            host: process.env.SMTP_HOST,
+            port: parseInt(process.env.SMTP_PORT || '587'),
+            auth: {
+                user: process.env.SMTP_USER,
+                pass: process.env.SMTP_PASS,
+            },
+        });
+  
+        try {
+            await transporter.sendMail({
+                from: process.env.EMAIL_FROM,
+                to: invoiceData.customer.email,
+                subject: `Your Invoice for ${invoiceData.title}`,
+                text: `Dear ${invoiceData.customer.name},\n\nPlease find attached your invoice for ${invoiceData.title}.\n\nThank you for your business!`,
+                attachments: pdfContent ? [
+                    {
+                        filename: 'invoice.pdf',
+                        content: pdfContent,
+                    },
+                ] : [],
+            });
+            console.log('Email sent successfully');
+        } catch (emailError) {
+            console.error('Error sending email:', emailError);
+        }
+  
+        console.log('Invoice URL:', responseData.data.invoice_url);
+
         return NextResponse.json({ 
-          error: 'Failed to create invoice', 
-          details: responseData 
-        }, { status: invoiceResponse.status });
-      }
-  
-      console.log('Created invoice:', responseData);
-  
-      // Send email with invoice
-      const transporter = nodemailer.createTransport({
-        host: process.env.SMTP_HOST,
-        port: parseInt(process.env.SMTP_PORT || '587'),
-        auth: {
-          user: process.env.SMTP_USER,
-          pass: process.env.SMTP_PASS,
-        },
-      });
-  
-      await transporter.sendMail({
-        from: process.env.EMAIL_FROM,
-        to: invoiceData.customer.email,
-        subject: `Your Invoice for ${invoiceData.title}`,
-        html: `
-          <p>Dear ${invoiceData.customer.name},</p>
-          <p>Your invoice for ${invoiceData.title} is ready. You can view and download it using the link below:</p>
-          <p><a href="${responseData.invoice_url}">View Invoice</a></p>
-          <p>If the link doesn't work, you can copy and paste the following URL into your browser:</p>
-          <p>${responseData.invoice_url}</p>
-          <p>Thank you for your business!</p>
-        `,
-        text: `
-      Dear ${invoiceData.customer.name},
-      
-      Your invoice for ${invoiceData.title} is ready. You can view and download it using the following URL:
-      
-      ${responseData.invoice_url}
-      
-      Thank you for your business!
-        `,
-      });
-  
-      return NextResponse.json({ message: 'Booking created and invoice sent' }, { status: 201 });
+            message: 'Booking created and invoice sent',
+            invoice_url: responseData.data.invoice_url
+        }, { status: 201 });
     } catch (error: any) {
-      console.error('Error processing booking:', error);
-      return NextResponse.json({ error: 'Internal Server Error', details: error.message }, { status: 500 });
+        console.error('Error processing booking:', error);
+        return NextResponse.json({ error: 'Internal Server Error', details: error.message }, { status: 500 });
     }
-  }
+}
