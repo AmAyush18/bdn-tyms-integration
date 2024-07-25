@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
-const allowedOrigins = ['http://localhost:5173', 'https://breezedunord.vercel.app', 'https://www.breezedunord.mu', 'https://shop.breezedunord.mu'];
+const allowedOrigins = ['http://localhost:5173', 'https://breezedunord.vercel.app', 'https://www.breezedunord.mu', 'https://shop.breezedunord.mu', 'https://bdn-tyms-integration.vercel.app'];
 
 export function middleware(request: NextRequest) {
   const tymsToken = request.cookies.get('tyms_access_token')
